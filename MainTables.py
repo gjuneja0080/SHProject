@@ -62,14 +62,64 @@ df_panelData = df_BDJ_Dandora.copy()
 df_panelData = df_BDJ_Dandora.filter(['id', 'wave','profit_b','businessage_b','I_emp_b', 'emp_b', 'credit_b', 'bankaccount_b', 'loan_b', 'formalaccount_b', 'advert_b', 'manu_b', 'retail_b', 'food_b', 'serv_b', 'age_b', 'secondaryedu_b', 'treat2'], axis=1).astype(float)
 df_panelData = df_panelData.set_index(['id', 'wave'])
 
-temp_dataf = df_panelData.xs(0, level = 'wave')
+panel = df_panelData.xs(0, level = 'wave')
 
-# Transfer categorical variables to dummy variables
-treat = pd.get_dummies(temp_dataf['treat2'], prefix='treat2')
+#Transfer categorical variables to dummy variables
+preTreat2Factors = pd.get_dummies(panel['treat2'], prefix='treat2')
 
-df_temp = temp_dataf.join(pc.loc[: , 'treat2' : ])
+#To eliminate multicollinearity, delete one of the factor variables
+treat2Factor = dummyTreat.drop(['treat2_2.0'], axis = 'columns')
+
+#Join panel balancelist with the dummy variables
+panelFactor = pd.concat([panel, dummyTreat], axis = 'columns')
+
+def OLSregression(x):
+    formula = "%s ~ treat2Factor" % x
+    formalaccount_b = smf.ols(formula, panelFactor).fit()
+    return formalaccount_b.summary()
 
 
-formula = "profit_b ~ treat"
-results = smf.ols(formula, df_temp).fit()
-print(results.summary())
+#Baseline Balance: profit_b
+OLSregression('profit_b')
+
+#Baseline Balance: businessage_b
+OLSregression('businessage_b')
+
+#Baseline Balance: I_emp_b
+OLSregression('I_emp_b')
+
+#Baseline Balance: emp_b
+OLSregression('emp_b')
+
+#Baseline Balance: credit_b
+OLSregression('credit_b')
+
+#Baseline Balance: bankaccount_b
+OLSregression('bankaccount_b')
+
+#Baseline Balance: loan_b
+OLSregression('loan_b')
+
+#Baseline Balance: formalaccount_b
+OLSregression('formalaccount_b')
+
+#Baseline Balance: advert_b
+OLSregression('advert_b')
+
+#Baseline Balance: 'manu_b'
+OLSregression('manu_b')
+
+#Baseline Balance: 'retail_b'
+OLSregression('retail_b')
+
+#Baseline Balance: 'food_b'
+OLSregression('food_b')
+
+#Baseline Balance: 'serv_b'
+OLSregression('serv_b')
+
+#Baseline Balance: 'age_b'
+OLSregression('age_b')
+
+#Baseline Balance: 'secondaryedu_b'
+OLSregression('secondaryedu_b')
