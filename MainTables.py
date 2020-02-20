@@ -26,7 +26,6 @@ pd.read_csv(r'/Users/gopaljuneja/Desktop/Reproduced_MEK/RD_Dataset.csv')
 
 
 #extracting rows from df_BDJ_Baseline where youngfirm = 1
-
 temp = df_BDJ_Baseline.loc[(df_BDJ_Baseline['youngfirm'] == 1)]
 
 
@@ -60,9 +59,17 @@ new_BDJ_Dandora = df_BDJ_Dandora.filter(['profit_b','businessage_b','I_emp_b', '
 
 #Creating xtset panel data and extracting local balancelist
 df_panelData = df_BDJ_Dandora.copy()
-df_panelData = df_BDJ_Dandora.filter(['id', 'wave','profit_b','businessage_b','I_emp_b', 'emp_b', 'credit_b', 'bankaccount_b', 'loan_b', 'formalaccount_b', 'advert_b', 'manu_b', 'retail_b', 'food_b', 'serv_b', 'age_b', 'secondaryedu_b'], axis=1).astype(float)
+df_panelData = df_BDJ_Dandora.filter(['id', 'wave','profit_b','businessage_b','I_emp_b', 'emp_b', 'credit_b', 'bankaccount_b', 'loan_b', 'formalaccount_b', 'advert_b', 'manu_b', 'retail_b', 'food_b', 'serv_b', 'age_b', 'secondaryedu_b', 'treat2'], axis=1).astype(float)
 df_panelData = df_panelData.set_index(['id', 'wave'])
 
+temp_dataf = df_panelData.xs(0, level = 'wave')
+
+# Transfer categorical variables to dummy variables
+treat = pd.get_dummies(temp_dataf['treat2'], prefix='treat2')
+
+df_temp = temp_dataf.join(pc.loc[: , 'treat2' : ])
 
 
-
+formula = "profit_b ~ treat"
+results = smf.ols(formula, df_temp).fit()
+print(results.summary())
